@@ -38,9 +38,7 @@ Useful links:
 
 ## Installation
 
-You can install the project requirements that are listed in the `environment.yaml` file.
-
-Simply run:
+You can install the project requirements that are listed in the `environment.yaml` file by running this command:
 
 ```bash
 conda env create -f environment.yaml

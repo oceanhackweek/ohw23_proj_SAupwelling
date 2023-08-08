@@ -1,4 +1,4 @@
-name: ohw_upwelling
+name: ohw23_sa_upwelling
 channels:
   - conda-forge
 dependencies:
