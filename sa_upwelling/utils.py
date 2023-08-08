@@ -12,6 +12,11 @@ def extract_file_id_from_filename(filename):
     Extract the file ID from a filename.
 
     Filename must follow the structure of IMOS data in S3 buckets.
+
+    Parameters
+    ----------
+    filename : str
+        Filename to extract the file ID from.
     """
     return filename.split("/")[6].split("-")[2]
 
