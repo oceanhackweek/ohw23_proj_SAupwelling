@@ -16,7 +16,7 @@ Issue 2:
   •	Climatology (I have the example code for that from past year which would go in here to help.)
   •	Process the time series to remove seasonality and check for trends (rolling mean, detrending, subtracting climatology, filtering). 
 
-ISSUE 3: 
+Issue 3: 
 •	What is the relationship of this variability with the relevant climate mode for the region? What is the relationship of the variability of the Bonney Coast and stratospheric warming?
   •	Load SAM, ENSO indexes. 
   • Create or download an index for stratospheric warming. 
@@ -24,10 +24,10 @@ ISSUE 3:
 
 If we are amazing and got this far: 
 
-ISSUE 4: 
+Issue 4: 
 •	Develop climate model simulations: use climate models (e.g., global climate models or regional climate models) to simulate the Bonney Coast climate and environmental conditions. Run simulations that include different scenarios or forcings, such as natural variability and anthropogenic forcing, to compare against the observed data.
 
-ISSUE 5:
+Issue 5:
 •	Quantify the contributions of different drivers to the observed changes using established attribution methods, such as fingerprinting techniques or attribution frameworks.
 
 Housekeeping: 
