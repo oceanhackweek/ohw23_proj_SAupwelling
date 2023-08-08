@@ -13,7 +13,7 @@ def extract_file_id_from_filename(filename):
 
     Filename must follow the structure of IMOS data in S3 buckets.
     """
-    return filename.split('/')[6].split('-')[2]
+    return filename.split("/")[6].split("-")[2]
 
 
 def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern="*.nc"):
@@ -31,7 +31,11 @@ def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern=
     first_ref_files : list
         list of the first files that match the file ID.
     """
-    fs = fsspec.filesystem('s3',use_listings_cache=False,anon=True,)
+    fs = fsspec.filesystem(
+        "s3",
+        use_listings_cache=False,
+        anon=True,
+    )
     if not path.endswith("/"):
         path = path + "/"
     files = sorted(fs.glob(f"{path}{pattern}"))
@@ -40,12 +44,21 @@ def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern=
     file_ids = {extract_file_id_from_filename(file) for file in files}
 
     # Get only the first file of each file ID
-    files = {file_id_: sorted([file_ for file_ in files if extract_file_id_from_filename(file_) == file_id_])[0] for file_id_ in file_ids}
+    files = {
+        file_id_: sorted(
+            [
+                file_
+                for file_ in files
+                if extract_file_id_from_filename(file_) == file_id_
+            ]
+        )[0]
+        for file_id_ in file_ids
+    }
 
     return files
 
 
-def open_nc(url, variable='TEMP'):
+def open_nc(url, variable="TEMP"):
     """
     Open an nc file from an S3 bucket.
 
@@ -60,10 +73,12 @@ def open_nc(url, variable='TEMP'):
     -------
     data : xarray.Dataset
     """
-    s3 = s3fs.S3FileSystem(anon=True,default_fill_cache=False,default_cache_type=None)
-    with s3.open(url,) as f:
-        data=xr.open_dataset(f, engine='h5netcdf').load().squeeze()
-        data[variable] = data[variable][data.TEMP_quality_control==1]
+    s3 = s3fs.S3FileSystem(anon=True, default_fill_cache=False, default_cache_type=None)
+    with s3.open(
+        url,
+    ) as f:
+        data = xr.open_dataset(f, engine="h5netcdf").load().squeeze()
+        data[variable] = data[variable][data.TEMP_quality_control == 1]
     return data
 
 
@@ -100,4 +115,15 @@ def get_shared_coordinates(list_of_xr_datasets):
     commonvars: list
         List of shared coordinates.
     """
-    return list(set.intersection(*list((map(lambda ds:set([var for var in ds.data_vars]), list_of_xr_datasets)))))
+    return list(
+        set.intersection(
+            *list(
+                (
+                    map(
+                        lambda ds: set([var for var in ds.data_vars]),
+                        list_of_xr_datasets,
+                    )
+                )
+            )
+        )
+    )
