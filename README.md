@@ -32,3 +32,9 @@ Issue 5: Quantify the contributions of different drivers to the observed changes
 Housekeeping: 
 - I have created some issues to help us quickstart the project, but feel free to investigate the data as you please - just comment it through!
 - Create and store code on the "Notebooks" folder and, once an issue is resolved, comment the link of the final code and close the issue.
+
+Useful links: 
+- IMOS bucket for SA coastal mooring data: http://imos-data.s3-website-ap-southeast-2.amazonaws.com/?prefix=IMOS/ANMN/SA/
+- IMOS bucket for SA NRS station data: http://imos-data.s3-website-ap-southeast-2.amazonaws.com/?prefix=IMOS/ANMN/NRS/NRSKAI/
+- SA coastal moorings and NRS station technical summary, where you can find the code names for active and deactivated moorings which are important to download the data from the IMOS bucket: https://imos.org.au/facilities/nationalmooringnetwork/samoorings
+- AODN portal: https://portal.aodn.org.au/search 
