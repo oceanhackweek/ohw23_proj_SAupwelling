@@ -1,0 +1,11 @@
+name: ohw_upwelling
+channels:
+  - conda-forge
+dependencies:
+  - dask
+  - fsspec
+  - ipykernel # to launch in Jupyter
+  - matplotlib
+  - pandas
+  - s3fs
+  - xarray

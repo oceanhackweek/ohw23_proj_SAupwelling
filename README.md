@@ -38,3 +38,16 @@ Useful links:
 - IMOS bucket for SA NRS station data: http://imos-data.s3-website-ap-southeast-2.amazonaws.com/?prefix=IMOS/ANMN/NRS/NRSKAI/
 - SA coastal moorings and NRS station technical summary, where you can find the code names for active and deactivated moorings which are important to download the data from the IMOS bucket: https://imos.org.au/facilities/nationalmooringnetwork/samoorings
 - AODN portal: https://portal.aodn.org.au/search 
+
+## Installation
+
+You can install the project requirements that are listed in the `environment.yaml` file.
+
+Simply run:
+
+```bash
+conda env create -f environment.yaml
+```
+
+You can replace `conda` with `mamba`, if you have it installed.
+
