@@ -24,11 +24,10 @@ Issue 3:
 
 If we are amazing and got this far: 
 
-Issue 4: 
-- Develop climate model simulations: use climate models (e.g., global climate models or regional climate models) to simulate the Bonney Coast climate and environmental conditions. Run simulations that include different scenarios or forcings, such as natural variability and anthropogenic forcing, to compare against the observed data.
+Issue 4: •	Develop climate model simulations.
+  - Use climate models (e.g., global climate models or regional climate models) to simulate the Bonney Coast climate and environmental conditions. Run simulations that include different scenarios or forcings, such as natural variability and anthropogenic forcing, to compare against the observed data.
 
-Issue 5:
-- Quantify the contributions of different drivers to the observed changes using established attribution methods, such as fingerprinting techniques or attribution frameworks.
+Issue 5: Quantify the contributions of different drivers to the observed changes using established attribution methods, such as fingerprinting techniques or attribution frameworks.
 
 Housekeeping: 
 - I have created some issues to help us quickstart the project, but feel free to investigate the data as you please - just comment it through!
