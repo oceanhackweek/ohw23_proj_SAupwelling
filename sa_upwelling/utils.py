@@ -48,7 +48,7 @@ def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern=
     # Loop through eacy unique file ID
     for file_id in file_ids:
         # Filter all the files with that ID
-        filtered_list = filter(lambda file_: file_.split('/')[6].split('-')[2] == file_id, files)
+        filtered_list = filter(lambda file_: extract_file_id_from_filename(file_) == file_id, files)
         filtered_list = sorted(filtered_list)
         # Select just the first one
         first = next(iter(filtered_list), None)
