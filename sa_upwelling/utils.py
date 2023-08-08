@@ -2,9 +2,9 @@
 Utility functions to be reused in notebooks.
 """
 import fsspec
-import numpy as np
 import s3fs
 import xarray as xr
+from dask import bag as db
 
 
 def extract_file_id_from_filename(filename):
@@ -28,45 +28,26 @@ def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern=
 
     Returns
     -------
-    files : dicti
-        dict of files matching the pattern.
+    first_ref_files : list
+        list of the first files that match the file ID.
     """
     fs = fsspec.filesystem('s3',use_listings_cache=False,anon=True,)
     if not path.endswith("/"):
         path = path + "/"
-    files = fs.glob(f"{path}{pattern}")
-
-    # Sort the files by date
-    files = np.sort(files)
+    files = sorted(fs.glob(f"{path}{pattern}"))
 
     # Extract the unique file IDs
-    file_ids = [extract_file_id_from_filename(file) for file in files]
-    file_ids = np.unique(file_ids)
+    file_ids = {extract_file_id_from_filename(file) for file in files}
 
-    first_ref_files = []
+    # Get only the first file of each file ID
+    files = {file_id_: sorted([file_ for file_ in files if extract_file_id_from_filename(file_) == file_id_])[0] for file_id_ in file_ids}
 
-    # Loop through eacy unique file ID
-    for file_id in file_ids:
-        # Filter all the files with that ID
-        filtered_list = filter(lambda file_: extract_file_id_from_filename(file_) == file_id, files)
-        filtered_list = sorted(filtered_list)
-        # Select just the first one
-        first = next(iter(filtered_list), None)
-        # Add file name to list
-        first_ref_files.append(first)
-
-    output = {
-        "files" : files,
-        "file_ids": file_ids,
-        "first_ref_files": first_ref_files
-    }
-
-    return output
+    return files
 
 
-def open_cdt(url, variable='TEMP'):
+def open_nc(url, variable='TEMP'):
     """
-    Open a CDT file from an S3 bucket.
+    Open an nc file from an S3 bucket.
 
     Parameters
     ----------
@@ -74,10 +55,49 @@ def open_cdt(url, variable='TEMP'):
         URL to the file.
     variable : str
         Variable to load.
-        
+
+    Returns
+    -------
+    data : xarray.Dataset
     """
     s3 = s3fs.S3FileSystem(anon=True,default_fill_cache=False,default_cache_type=None)
     with s3.open(url,) as f:
-        data=xr.open_dataset(f,engine='h5netcdf').load().squeeze()
+        data=xr.open_dataset(f, engine='h5netcdf').load().squeeze()
         data[variable] = data[variable][data.TEMP_quality_control==1]
     return data
+
+
+def open_files_with_dask(files):
+    """
+    Open files with dask bag. Requires a running Dask client.
+
+    Parameters
+    ----------
+    files : list
+        List of files to open.
+
+    Returns
+    -------
+    bag : dask.bag
+    cast : list of xarray Datasets.
+    """
+    bag = db.from_sequence(files)
+    cast = db.map(open_nc, bag).compute()
+    return cast
+
+
+def get_shared_coordinates(list_of_xr_datasets):
+    """
+    Get shared coordinates between a list of xarray datasets.
+
+    Parameters
+    ----------
+    list_of_xr_datasets : list
+        List of xarray datasets.
+
+    Returns
+    -------
+    commonvars: list
+        List of shared coordinates.
+    """
+    return list(set.intersection(*list((map(lambda ds:set([var for var in ds.data_vars]), list_of_xr_datasets)))))
