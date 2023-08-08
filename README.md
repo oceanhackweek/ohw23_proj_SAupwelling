@@ -11,7 +11,7 @@ Issue 1:
   - Create a map where we can see the SA moorings locations with a bathymetry background. 
 
 Issue 2:
-•	What is the variability of the Bonney Coast? 
+•	What is the variability of the South Australia upwelling? 
   - Temperature and salinity anomalies from all moorings. 
   - Climatology (I have the example code for that from past year which would go in here to help.)
   - Process the time series to remove seasonality and check for trends (rolling mean, detrending, subtracting climatology, filtering). 
