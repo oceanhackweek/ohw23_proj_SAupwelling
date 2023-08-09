@@ -164,7 +164,6 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
     pattern : str
         Pattern to match the files.
     """
-    data_type = "hourly-timeseries"
     files, ds = dict(), dict()
 
     if pattern is None:
