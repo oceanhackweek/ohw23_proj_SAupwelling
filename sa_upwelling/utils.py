@@ -9,7 +9,7 @@ from dask import bag as db
 
 
 # List of moorings and corresponding regions to build S3 paths
-moorings = [
+DEFAULT_MOORINGS = [
     ("NRS", "NRSKAI"),
     ("SA", "SAM8SG"),
     ("SA", "SAM5CB"),
@@ -193,3 +193,5 @@ def load_data_products(moorings=moorings, data_type="hourly-timeseries", pattern
         # Write files locally if they don't exist
         if not local:
             ds[mooring].to_netcdf(outfile)
+    
+    return files, ds
