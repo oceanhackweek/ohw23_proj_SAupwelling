@@ -42,7 +42,6 @@ def load_file_urls(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", patt
         path = path + "/"
     files = sorted(fs.glob(f"{path}{pattern}"))
     
-    
     if get_file_ids:
         file_ids = dict()
         for file in files:
@@ -60,32 +59,30 @@ def load_file_urls(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", patt
     return files
 
 
-def open_nc_from_url(url, variable="TEMP"):
+def open_nc(url_or_path, variable=None, remote=True):
     """
-    Open an nc file from an S3 bucket.
-    
-    Optionally, specify a variable to apply quality control.
+    Open an nc file from an S3 bucket or locally.
 
     Parameters
     ----------
-    url : str
-        URL to the file.
-    variable : str
-        Variable to load.
+    url_or_path : str
+        URL or path to the file.
+    remote : bool
+        Whether to load from S3 or locally
 
     Returns
     -------
     data : xarray.Dataset
     """
-    s3 = s3fs.S3FileSystem(anon=True, default_fill_cache=False, default_cache_type=None)
-    with s3.open(
-        url,
-    ) as f:
-        data = xr.open_dataset(f, engine="h5netcdf").load().squeeze()
-        # Use ds.where() instead
-        # There are a couple of other alternatives
-        if variable:
-            data[variable] = data[variable][data.TEMP_quality_control == 1]
+    if remote:
+        s3 = s3fs.S3FileSystem(anon=True, default_fill_cache=False, default_cache_type=None)
+        with s3.open(
+            url_or_path,
+        ) as f:
+            data = xr.open_dataset(f, engine="h5netcdf").load().squeeze()
+    else:
+        data = xr.open_dataset(url_or_path, engine="h5netcdf").load().squeeze()
+            
     return data
 
 
