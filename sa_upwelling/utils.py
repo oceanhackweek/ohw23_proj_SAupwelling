@@ -182,7 +182,7 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
         
         # Retrieve from remote if they don't exist
         if not local:
-            print(f"Geting URLs of {data_type} for mooring '{mooring}'.")
+            print(f"Downloading {data_type} for mooring '{mooring}'.")
             path = f"s3://imos-data/IMOS/ANMN/{region}/{mooring}/{data_type.replace('-', '_')}/"
             file_url = load_file_urls(path, pattern=f"{pattern}")[0]
             files[mooring] = file_url        
@@ -195,7 +195,7 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
         outdir = Path(f"{data_dir}/{region}/{mooring}/")
         if not outdir.exists():
             Path.mkdir(outdir, parents=True)
-        outfile = Path.joinpath(file_url.split("/")[-1])
+        outfile = Path(data_dir).joinpath(Path(file_url).name)
         ds[mooring] = open_nc(outfile if local else file_url, remote=not local)
         
         # Write files locally if they don't exist
