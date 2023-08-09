@@ -195,8 +195,8 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
         outdir = Path(f"{data_dir}/{region}/{mooring}/")
         if not outdir.exists():
             Path.mkdir(outdir, parents=True)
-        outfile = Path(data_dir).joinpath(Path(file_url).name)
-        ds[mooring] = open_nc(outfile if local else file_url, remote=not local)
+        outfile = Path(outdir).joinpath(file_url.split("/")[-1])
+        ds[mooring] = open_nc(str(outfile) if local else str(file_url), remote=not local)
         
         # Write files locally if they don't exist
         if not local:
