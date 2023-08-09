@@ -16,7 +16,7 @@ def extract_file_id_from_filename(filename):
     return filename.split("/")[6].split("-")[2]
 
 
-def load_file_urls(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern="*.nc", get_file_ids=False):
+def load_file_urls(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern="*.nc", get_file_ids=False, get_first_file_only=False):
     """Load files from an S3 bucket that match a pattern.
 
     Parameters
@@ -52,7 +52,10 @@ def load_file_urls(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", patt
             else:
                 file_ids[file_id].append(file)
                 
-        file_ids = sorted(list(file_ids.values()))
+        files = sorted(list(file_ids.values()))
+        
+    if get_first_file_only:
+        files = [file[0] if isinstance(file, list) else file for file in files]
 
     return files
 
