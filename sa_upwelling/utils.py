@@ -146,7 +146,7 @@ def get_shared_coordinates(list_of_xr_datasets):
     )
 
 
-def load_data_products(moorings=moorings, data_type="hourly-timeseries", pattern=None, data_dir="../Datasets/"):
+def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir="../Datasets/"):
     """
     Load data products from S3 buckets or locally.
 
