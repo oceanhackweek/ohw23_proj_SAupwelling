@@ -1,5 +1,7 @@
 # OHW23
-Datasets/*/*.nc  
+Datasets/*/*.nc
+Datasets/NRS
+Datasets/SA  
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
