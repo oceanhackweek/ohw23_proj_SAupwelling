@@ -1,11 +1,14 @@
-name: ohw23_sa_upwelling
+name: ohw23_upwelling
 channels:
   - conda-forge
 dependencies:
   - dask
   - fsspec
+  - h5netcdf
   - ipykernel # to launch in Jupyter
+  - libnetcdf
   - matplotlib
+  - netcdf4
   - pandas
   - s3fs
   - xarray
