@@ -150,6 +150,11 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
     """
     Load data products from S3 buckets or locally.
 
+    Usage:
+        hourly_files, hourly_ds = utils.load_data_products()
+        agg_files, agg_ds = utils.load_data_products(data_type="aggregated_timeseries",
+                                                     pattern="*TEMP-aggregated-timeseries_*.nc")
+
     Parameters
     ----------
     moorings : list
