@@ -12,16 +12,11 @@ def extract_file_id_from_filename(filename):
     Extract the file ID from a filename.
 
     Filename must follow the structure of IMOS data in S3 buckets.
-
-    Parameters
-    ----------
-    filename : str
-        Filename to extract the file ID from.
     """
     return filename.split("/")[6].split("-")[2]
 
 
-def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern="*.nc"):
+def load_file_urls(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern="*.nc", get_file_ids=False):
     """Load files from an S3 bucket that match a pattern.
 
     Parameters
@@ -30,11 +25,13 @@ def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern=
         Path to the directory containing the files.
     pattern : str
         Pattern to match the files.
+    get_file_ids : bool
+        If turned on, create a list of lists where each list has a specific file ID.
 
     Returns
     -------
-    first_ref_files : list
-        list of the first files that match the file ID.
+    files : list
+        List of files that match the path and pattern.
     """
     fs = fsspec.filesystem(
         "s3",
@@ -44,28 +41,27 @@ def load_files(path="s3://imos-data/IMOS/ANMN/NRS/NRSKAI/Temperature/", pattern=
     if not path.endswith("/"):
         path = path + "/"
     files = sorted(fs.glob(f"{path}{pattern}"))
-
-    # Extract the unique file IDs
-    file_ids = {extract_file_id_from_filename(file) for file in files}
-
-    # Get only the first file of each file ID
-    files = {
-        file_id_: sorted(
-            [
-                file_
-                for file_ in files
-                if extract_file_id_from_filename(file_) == file_id_
-            ]
-        )[0]
-        for file_id_ in file_ids
-    }
+    
+    
+    if get_file_ids:
+        file_ids = dict()
+        for file in files:
+            file_id = extract_file_id_from_filename(file)
+            if not file_ids.get(file_id, False):
+                file_ids[file_id] = []
+            else:
+                file_ids[file_id].append(file)
+                
+        file_ids = sorted(list(file_ids.values()))
 
     return files
 
 
-def open_nc(url, variable="TEMP"):
+def open_nc_from_url(url, variable="TEMP"):
     """
     Open an nc file from an S3 bucket.
+    
+    Optionally, specify a variable to apply quality control.
 
     Parameters
     ----------
@@ -83,7 +79,10 @@ def open_nc(url, variable="TEMP"):
         url,
     ) as f:
         data = xr.open_dataset(f, engine="h5netcdf").load().squeeze()
-        data[variable] = data[variable][data.TEMP_quality_control == 1]
+        # Use ds.where() instead
+        # There are a couple of other alternatives
+        if variable:
+            data[variable] = data[variable][data.TEMP_quality_control == 1]
     return data
 
 
@@ -94,7 +93,7 @@ def open_files_with_dask(files):
     Parameters
     ----------
     files : list
-        List of files to open.
+        List of file URLs to open.
 
     Returns
     -------
