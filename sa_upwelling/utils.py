@@ -1,10 +1,23 @@
 """
 Utility functions to be reused in notebooks.
 """
+from glob import glob
 import fsspec
 import s3fs
 import xarray as xr
 from dask import bag as db
+
+
+# List of moorings and corresponding regions to build S3 paths
+moorings = [
+    ("NRS", "NRSKAI"),
+    ("SA", "SAM8SG"),
+    ("SA", "SAM5CB"),
+    ("SA", "SAM2CP"),
+    ("SA", "SAM6IS"),
+    ("SA", "SAM3MS"),
+    ("SA", "SAM7DS")
+]
 
 
 def extract_file_id_from_filename(filename):
@@ -131,3 +144,52 @@ def get_shared_coordinates(list_of_xr_datasets):
             )
         )
     )
+
+
+def load_data_products(moorings=moorings, data_type="hourly-timeseries", pattern=None, data_dir="../Datasets/"):
+    """
+    Load data products from S3 buckets or locally.
+
+    Parameters
+    ----------
+    moorings : list
+        List of tuples (region, mooring_ID) to load.
+    data_type : str
+        Data type to load, e.g. "aggregated_timeseries", "hourly_timeseries".
+    pattern : str
+        Pattern to match the files.
+    """
+    data_type = "hourly-timeseries"
+    files, ds = dict(), dict()
+
+    if pattern is None:
+        pattern = f"*_{data_type}_*.nc"
+
+    if not data_dir.endswith("/"):
+        data_dir = data_dir + "/"
+
+    # Find file URLs on S3 or load local files
+    for region, mooring in moorings:
+        
+        # Check if file exists
+        glob_path = glob(f"{data_dir}/{region}/{mooring}/{pattern}")
+        local = len(glob_path) > 0
+        
+        # Retrieve from remote if they don't exist
+        if not local:
+            print(f"Geting URLs of {data_type} for mooring '{mooring}'.")
+            path = f"s3://imos-data/IMOS/ANMN/{region}/{mooring}/{data_type.replace('-', '_')}/"
+            file_url = load_file_urls(path, pattern=f"{pattern}")[0]
+            files[mooring] = file_url        
+        # Load them locally if they exist
+        else:
+            print(f"Loading local {data_type} data for mooring '{mooring}'.")
+            file_url = glob_path[0]
+            files[mooring] = file_url
+        
+        outfile = f"{data_dir}/{region}/{mooring}/" + file_url.split("/")[-1]
+        ds[mooring] = open_nc(outfile if local else file_url, remote=not local)
+        
+        # Write files locally if they don't exist
+        if not local:
+            ds[mooring].to_netcdf(outfile)
