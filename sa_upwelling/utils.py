@@ -6,6 +6,7 @@ import fsspec
 import s3fs
 import xarray as xr
 from dask import bag as db
+from pathlib import Path
 
 
 # List of moorings and corresponding regions to build S3 paths
@@ -191,7 +192,10 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
             file_url = glob_path[0]
             files[mooring] = file_url
         
-        outfile = f"{data_dir}/{region}/{mooring}/" + file_url.split("/")[-1]
+        outdir = Path(f"{data_dir}/{region}/{mooring}/")
+        if not outdir.exists():
+            Path.mkdir(outdir, parents=True)
+        outfile = Path.joinpath(file_url.split("/")[-1])
         ds[mooring] = open_nc(outfile if local else file_url, remote=not local)
         
         # Write files locally if they don't exist
