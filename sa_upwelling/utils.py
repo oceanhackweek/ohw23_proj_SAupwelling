@@ -8,6 +8,8 @@ import xarray as xr
 from dask import bag as db
 from pathlib import Path
 
+# Default location to store local copy of data
+DATA_DIR = "../Datasets/"
 
 # List of moorings and corresponding regions to build S3 paths
 DEFAULT_MOORINGS = [
@@ -147,7 +149,7 @@ def get_shared_coordinates(list_of_xr_datasets):
     )
 
 
-def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir="../Datasets/"):
+def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir=DATA_DIR):
     """
     Load data products from S3 buckets or locally.
 
