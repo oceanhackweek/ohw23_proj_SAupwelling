@@ -6,7 +6,7 @@ What is the variability of the South Australian upwelling and what is driving it
 My idea for this project is to revisit the efforts from the OceanHack 2022 and create a very general “detection and attribution” project. We can tweak it as we go, depending on where our interest takes us. I propose this: 
 
 Issue 1: Subset the data from SA moorings. 
-  - Create code where we can access the different moorings.
+  - ~~Create code where we can access the different moorings.~~
   - Create a map where we can see the SA moorings locations with a bathymetry background. 
 
 Issue 2: What is the variability of the South Australia upwelling? 
@@ -15,8 +15,8 @@ Issue 2: What is the variability of the South Australia upwelling?
   - Process the time series to remove seasonality and check for trends (rolling mean, detrending, subtracting climatology, filtering). 
 
 Issue 3: What is the relationship of this variability with the relevant climate mode for the region? What is the relationship of the variability of the Bonney Coast and stratospheric warming?
-  - Load SAM, ENSO indexes. 
-  - Create or download an index for stratospheric warming. 
+  - ~~Load SAM, ENSO indexes.~~ 
+  - ~~Create or download an index for stratospheric warming.~~ 
   - Apply statistical methods to analyse the observational data and assess the relationship between the observed changes and the potential drivers. This can involve time-series analysis, correlation analysis, regression modelling, or other statistical techniques.
 
 If we are amazing and got this far: 
