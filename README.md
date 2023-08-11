@@ -7,7 +7,7 @@ My idea for this project is to revisit the efforts from the OceanHack 2022 and c
 
 Issue 1: Subset the data from SA moorings. 
   - ~~Create code where we can access the different moorings.~~
-  - Create a map where we can see the SA moorings locations with a bathymetry background. 
+  - ~~Create a map where we can see the SA moorings locations with a bathymetry background.~~ 
 
 Issue 2: What is the variability of the South Australia upwelling? 
   - Temperature and salinity anomalies from all moorings. 
