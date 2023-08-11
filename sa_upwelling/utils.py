@@ -210,15 +210,22 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
     return files, ds
 
 
-def extract_timeseries_df(ds: xr.Dataset, save=False):
+def extract_timeseries_df(ds: xr.Dataset, sigclip=5, save=False):
     """From the given hourly-timeseries Dataset, extract a timeseries of temperature
     Filter out only values that are
     * Not from ADCP instruments
     * Within 10m of the deepest nominal depth in the dataset
 
-    Parameters:
-        ds: xarray.Dataset - The input dataset
-        save: bool - If True, save timeseries to a CSV file in the default local data directory
+    Parameters
+    ----------
+    ds: xarray.Dataset
+        The input dataset
+    sigclip: bool or numeric
+        If numeric, clip timeseries to this number of standard deviations from the mean.
+        If True, use 5 x stddev
+        If None, False or 0, don't clip
+    save: bool
+        If True, save timeseries to a CSV file in the default local data directory
 
     Return a pandas DataFrame containing TIME, TEMP and DEPTH
     """
@@ -239,6 +246,13 @@ def extract_timeseries_df(ds: xr.Dataset, save=False):
     df = pd.DataFrame({"TIME": ds.TIME[ii],
                        "TEMP": ds.TEMP[ii],
                        "DEPTH": ds.DEPTH[ii]})
+
+    # Apply sigma clipping
+    if sigclip:
+        nsig = 5 if sigclip is True else sigclip
+        mean = df.TEMP.mean()
+        std = df.TEMP.std()
+        df.TEMP.mask(abs(df.TEMP-mean) >= nsig*std, inplace=True)
 
     # Save to a CSV file
     if save:
