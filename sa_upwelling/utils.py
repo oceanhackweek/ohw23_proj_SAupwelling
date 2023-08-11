@@ -339,6 +339,7 @@ def create_regression_model(X, y, test_size=0.35, random_state=42, model=LinearR
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
 
+    print("Model:", str(model).replace("()", ""))
     print("Mean Squared Error:", mse)
     print("R-squared:", r2)
 
