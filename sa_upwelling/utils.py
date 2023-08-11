@@ -1,18 +1,22 @@
 """
 Utility functions to be reused in notebooks.
 """
-import os
-
 from glob import glob
 import fsspec
 import s3fs
-import pandas as pd
 import xarray as xr
 from dask import bag as db
 from pathlib import Path
+import pandas as pd
+import numpy as n
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Default location to store local copy of data
-DATA_DIR = "../Datasets/"
 
 # List of moorings and corresponding regions to build S3 paths
 DEFAULT_MOORINGS = [
@@ -152,7 +156,7 @@ def get_shared_coordinates(list_of_xr_datasets):
     )
 
 
-def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir=DATA_DIR):
+def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir="../Datasets/"):
     """
     Load data products from S3 buckets or locally.
 
@@ -210,54 +214,86 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
     return files, ds
 
 
-def extract_timeseries_df(ds: xr.Dataset, sigclip=5, save=False):
-    """From the given hourly-timeseries Dataset, extract a timeseries of temperature
-    Filter out only values that are
-    * Not from ADCP instruments
-    * Within 10m of the deepest nominal depth in the dataset
-
-    Parameters
-    ----------
-    ds: xarray.Dataset
-        The input dataset
-    sigclip: bool or numeric
-        If numeric, clip timeseries to this number of standard deviations from the mean.
-        If True, use 5 x stddev
-        If None, False or 0, don't clip
-    save: bool
-        If True, save timeseries to a CSV file in the default local data directory
-
-    Return a pandas DataFrame containing TIME, TEMP and DEPTH
+def create_modelling_data(mooring_csv):
     """
+    Preprocesses the mooring temp series CSV data along with the indexes data.
+    """
+    dataframes = {}
+    dataframes["Upwelling"] = pd.read_csv(mooring_csv)
+    dataframes["Upwelling"]["date"] = pd.to_datetime(dataframes["Upwelling"]["TIME"])
+    dataframes["Upwelling"] = dataframes["Upwelling"][["TEMP", "DEPTH", "date"]].rename(columns={"TEMP": "Mooring Temp", "DEPTH": "Mooring Depth"})
 
-    # Find the index of all the non-ADCP instruments
-    is_adcp = ds.instrument_id.str.find("ADCP") > 0
-    i_adcp = [i for i in range(len(ds.INSTRUMENT)) if is_adcp[i]]
+    files = {
+        "SAM": "../Datasets/SAM_index.csv",
+        "ENSO": "../Datasets/SOI_index.csv",
+        "IOD": "../Datasets/iod_index.csv",
+        "Polar_vortex": "../Datasets/Vortex_datasets.csv"
+    }
 
-    # Boolean to select OBSERVATIONs from non-ADCP instruments
-    inst_filter = ~ds.instrument_index.isin(i_adcp)
+    for k, v in files.items():
+        dataframes[k] = pd.read_csv(v)
 
-    # Boolean to select deep measurements
-    dmax = ds.NOMINAL_DEPTH.values.max()
-    dmin = dmax - 10.
-    depth_filter = ds.DEPTH > dmin
+    for df in "Upwelling SAM ENSO IOD".split():
+        dataframes[df]["date"] = pd.to_datetime(dataframes[df]["date"], dayfirst=True)
+        dataframes[df]["Year"] = dataframes[df]["date"].dt.year
+        dataframes[df]["Month"] = dataframes[df]["date"].dt.to_period("M")
+        dataframes[df] = dataframes[df].groupby("Month").mean(numeric_only=True)
 
-    ii = inst_filter & depth_filter
-    df = pd.DataFrame({"TIME": ds.TIME[ii],
-                       "TEMP": ds.TEMP[ii],
-                       "DEPTH": ds.DEPTH[ii]})
+    dataframes["Polar_vortex"] = dataframes["Polar_vortex"].dropna().copy()
+    dataframes["Polar_vortex"]["Year"] = dataframes["Polar_vortex"]["Year"].astype(int)
+    dataframes["Polar_vortex"] = dataframes["Polar_vortex"].set_index("Year")
 
-    # Apply sigma clipping
-    if sigclip:
-        nsig = 5 if sigclip is True else sigclip
-        mean = df.TEMP.mean()
-        std = df.TEMP.std()
-        df.TEMP.mask(abs(df.TEMP-mean) >= nsig*std, inplace=True)
+    data = pd.DataFrame(index=dataframes["Upwelling"].index)
+    for k, v in dataframes.items():
+        if k != "Polar_vortex":
+            data = data.merge(v.drop("Year", axis=1), left_index=True, right_index=True)
 
-    # Save to a CSV file
-    if save:
-        csv_path = os.path.join(DATA_DIR, f"{ds.site_code}_TEMP_{dmin:.0f}-{dmax:.0f}m.csv")
-        df.to_csv(csv_path, index=False)
-        print(f"Saved timeseries to {csv_path}")
+    rename_dict = {'Mooring Temp': "Mooring Temp",
+                   'Mooring Depth': "Mooring Depth",
+                   'sam_index': "SAM",
+                   'soi_index': "ENSO",
+                   'iod_index': "IOD",
+                   'S-Tmode_Lim_et_al_2018': "Polar vortex 1",
+                   'Sep-Nov[U]_60S10hPa_JRA55': "Polar vortex 2"}
 
-    return df
+    data = data.rename(columns=rename_dict)
+    data = data.dropna(subset=["Mooring Temp"])
+    # Separate features (climatic indices) and target (upwelling) variables
+    X = data[['SAM', 'ENSO', 'IOD',]] # 'Polar vortex 1', 'Polar vortex 2']]
+    y = data['Mooring Temp']
+    
+    return data, X, y
+
+
+def create_regression_model(X, y, test_size=0.35, random_state=42, model=LinearRegression, mooring_id=None):
+    # Split data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+
+    # Create a linear regression model
+    model = model()
+
+    # Train the model on the training data
+    model.fit(X_train, y_train)
+
+    # Make predictions on the testing data
+    y_pred = model.predict(X_test)
+
+    # Evaluate the model's performance
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    print("Mean Squared Error:", mse)
+    print("R-squared:", r2)
+
+    # Plot the predicted vs. actual upwelling values
+    # plt.scatter(y_test, y_pred)
+    sns.regplot(x=y_test, y=y_pred)
+    plt.xlabel("Actual Upwelling")
+    plt.ylabel("Predicted Upwelling")
+    title = "Actual vs. Predicted Upwelling"
+    if mooring_id:
+        title = mooring_id + " " + title
+    plt.title(title)
+    plt.show()
+    
+    return model, mse, r2
