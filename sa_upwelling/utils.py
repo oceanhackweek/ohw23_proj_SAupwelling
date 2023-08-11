@@ -1,14 +1,16 @@
 """
 Utility functions to be reused in notebooks.
 """
+import os
+
 from glob import glob
 import fsspec
 import s3fs
+import pandas as pd
 import xarray as xr
 from dask import bag as db
 from pathlib import Path
-import pandas as pd
-import numpy as n
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
@@ -17,6 +19,8 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Default location to store local copy of data
+DATA_DIR = "../Datasets/"
 
 # List of moorings and corresponding regions to build S3 paths
 DEFAULT_MOORINGS = [
@@ -156,7 +160,7 @@ def get_shared_coordinates(list_of_xr_datasets):
     )
 
 
-def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir="../Datasets/"):
+def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries", pattern=None, data_dir=DATA_DIR):
     """
     Load data products from S3 buckets or locally.
 
@@ -214,6 +218,59 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
     return files, ds
 
 
+def extract_timeseries_df(ds: xr.Dataset, sigclip=5, save=False):
+    """From the given hourly-timeseries Dataset, extract a timeseries of temperature
+    Filter out only values that are
+    * Not from ADCP instruments
+    * Within 10m of the deepest nominal depth in the dataset
+
+    Parameters
+    ----------
+    ds: xarray.Dataset
+        The input dataset
+    sigclip: bool or numeric
+        If numeric, clip timeseries to this number of standard deviations from the mean.
+        If True, use 5 x stddev
+        If None, False or 0, don't clip
+    save: bool
+        If True, save timeseries to a CSV file in the default local data directory
+
+    Return a pandas DataFrame containing TIME, TEMP and DEPTH
+    """
+
+    # Find the index of all the non-ADCP instruments
+    is_adcp = ds.instrument_id.str.find("ADCP") > 0
+    i_adcp = [i for i in range(len(ds.INSTRUMENT)) if is_adcp[i]]
+
+    # Boolean to select OBSERVATIONs from non-ADCP instruments
+    inst_filter = ~ds.instrument_index.isin(i_adcp)
+
+    # Boolean to select deep measurements
+    dmax = ds.NOMINAL_DEPTH.values.max()
+    dmin = dmax - 10.
+    depth_filter = ds.DEPTH > dmin
+
+    ii = inst_filter & depth_filter
+    df = pd.DataFrame({"TIME": ds.TIME[ii],
+                       "TEMP": ds.TEMP[ii],
+                       "DEPTH": ds.DEPTH[ii]})
+
+    # Apply sigma clipping
+    if sigclip:
+        nsig = 5 if sigclip is True else sigclip
+        mean = df.TEMP.mean()
+        std = df.TEMP.std()
+        df.TEMP.mask(abs(df.TEMP-mean) >= nsig*std, inplace=True)
+
+    # Save to a CSV file
+    if save:
+        csv_path = os.path.join(DATA_DIR, f"{ds.site_code}_TEMP_{dmin:.0f}-{dmax:.0f}m.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"Saved timeseries to {csv_path}")
+
+    return df
+
+
 def create_modelling_data(mooring_csv):
     """
     Preprocesses the mooring temp series CSV data along with the indexes data.
@@ -261,7 +318,7 @@ def create_modelling_data(mooring_csv):
     # Separate features (climatic indices) and target (upwelling) variables
     X = data[['SAM', 'ENSO', 'IOD',]] # 'Polar vortex 1', 'Polar vortex 2']]
     y = data['Mooring Temp']
-    
+
     return data, X, y
 
 
@@ -295,5 +352,5 @@ def create_regression_model(X, y, test_size=0.35, random_state=42, model=LinearR
         title = mooring_id + " " + title
     plt.title(title)
     plt.show()
-    
+
     return model, mse, r2
