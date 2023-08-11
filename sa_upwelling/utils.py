@@ -1,9 +1,12 @@
 """
 Utility functions to be reused in notebooks.
 """
+import os
+
 from glob import glob
 import fsspec
 import s3fs
+import pandas as pd
 import xarray as xr
 from dask import bag as db
 from pathlib import Path
@@ -205,3 +208,42 @@ def load_data_products(moorings=DEFAULT_MOORINGS, data_type="hourly-timeseries",
             ds[mooring].to_netcdf(outfile)
     
     return files, ds
+
+
+def extract_timeseries_df(ds: xr.Dataset, save=False):
+    """From the given hourly-timeseries Dataset, extract a timeseries of temperature
+    Filter out only values that are
+    * Not from ADCP instruments
+    * Within 10m of the deepest nominal depth in the dataset
+
+    Parameters:
+        ds: xarray.Dataset - The input dataset
+        save: bool - If True, save timeseries to a CSV file in the default local data directory
+
+    Return a pandas DataFrame containing TIME, TEMP and DEPTH
+    """
+
+    # Find the index of all the non-ADCP instruments
+    is_adcp = ds.instrument_id.str.find("ADCP") > 0
+    i_adcp = [i for i in range(len(ds.INSTRUMENT)) if is_adcp[i]]
+
+    # Boolean to select OBSERVATIONs from non-ADCP instruments
+    inst_filter = ~ds.instrument_index.isin(i_adcp)
+
+    # Boolean to select deep measurements
+    dmax = ds.NOMINAL_DEPTH.values.max()
+    dmin = dmax - 10.
+    depth_filter = ds.DEPTH > dmin
+
+    ii = inst_filter & depth_filter
+    df = pd.DataFrame({"TIME": ds.TIME[ii],
+                       "TEMP": ds.TEMP[ii],
+                       "DEPTH": ds.DEPTH[ii]})
+
+    # Save to a CSV file
+    if save:
+        csv_path = os.path.join(DATA_DIR, f"{ds.site_code}_TEMP_{dmin:.0f}-{dmax:.0f}m.csv")
+        df.to_csv(csv_path, index=False)
+        print(f"Saved timeseries to {csv_path}")
+
+    return df
