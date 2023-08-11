@@ -12,3 +12,5 @@ dependencies:
   - pandas
   - s3fs
   - xarray
+  - scikit-learn
+  - seaborn
