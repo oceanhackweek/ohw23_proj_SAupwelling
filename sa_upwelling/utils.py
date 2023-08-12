@@ -271,6 +271,21 @@ def extract_timeseries_df(ds: xr.Dataset, sigclip=5, save=False):
     return df
 
 
+def load_all_timeseries():
+    """Load hourly data and extract timeseries for all sites, saving to CSV locally.
+    Return a dictionary mapping site => timeseries (pd.DataFrame).
+    """
+
+    hourly_files, hourly_datasets = load_data_products()
+    temp_timeseries = dict()
+    for mooring in hourly_datasets.keys():
+        ds = hourly_datasets[mooring]
+        df = extract_timeseries_df(ds, save=True)
+        temp_timeseries[mooring] = df
+
+    return temp_timeseries
+
+
 def create_modelling_data(mooring_csv):
     """
     Preprocesses the mooring temp series CSV data along with the indexes data.
