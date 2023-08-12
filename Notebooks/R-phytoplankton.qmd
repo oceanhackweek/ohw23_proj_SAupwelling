@@ -1,0 +1,185 @@
+---
+title: "NRSKAI-phytoplankton"
+author: "Catherine Kim"
+format: html
+editor: source
+execute:
+  echo: false
+  warning: false
+---
+
+## Investigating phytoplankton in South Australia
+
+Phytoplankton data from National Reference Station at Kangaroo Island - look for anything interesting in association with suppression of upwelling in SA ~2013.
+
+```{r}
+library(planktonr)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+library(patchwork)
+```
+
+## Phytolankton
+
+Get National Referecne Station data using `{planktonr}` package. Look at parameters, column names.
+
+```{r}
+pKAI <- pr_get_Indices("NRS", Type = "P") |>
+  filter(StationName == "Kangaroo Island") |>
+  drop_na() |>
+  select(Year_Local, Month_Local, SampleTime_Local, StationName, Parameters, Values) |>
+  ungroup()
+
+unique(pKAI$Parameters)
+unique(pKAI$StationName)
+colnames(pKAI)
+```
+
+```{r}
+kai <- 
+
+unique(kai$Parameters)
+```
+
+Plot all parameters through time.
+
+```{r}
+kai |>
+  group_split(Parameters) |>
+  map(
+  ~ ggplot(.x, aes(Year_Local, Values)) +
+    geom_point() +
+    geom_smooth() +
+    scale_x_continuous(n.breaks = 15) +
+    labs(title = paste(.x$Parameters), ylab = "Year") +
+    theme_classic()
+  )
+```
+
+Trend analysis
+
+```{r}
+pr_plot_Trends(kai |> filter(Parameters == "PhytoBiomassCarbon_pgL"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") /
+  pr_plot_Trends(kai |> filter(Parameters == "PhytoAbundance_CellsL"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") /
+    pr_plot_Trends(kai |> filter(Parameters == "NoPhytoSpecies_Sample"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") 
+```
+
+```{r}
+NRSp <- pr_get_Indices("NRS") %>% 
+  filter(Parameters == "PhytoAbundance_CellsL") %>% 
+  filter(StationCode == "KAI") |>
+  drop_na()
+
+unique(NRSp$Parameters)
+
+p1 <- pr_plot_Trends(NRSp, Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10")
+p2 <- pr_plot_Trends(NRSp, Trend = "Month", Survey = "NRS", method = "loess")
+
+p1 + p2 + 
+  ggplot2::theme(axis.title.y = ggplot2::element_blank()) + # Remove y-title from 2nd column
+  patchwork::plot_layout(widths = c(3, 1), guides = "collect")
+```
+
+```{r}
+(p1 <- planktonr::pr_plot_TimeSeries(NRSp, Survey = "NRS", trans = "log10"))
+```
+## Functional Group
+
+```{r}
+FG <- pr_get_FuncGroups(Survey = "NRS", Type = "P") %>% 
+  dplyr::filter(StationCode == "KAI")
+
+phy1 <- planktonr::pr_plot_tsfg(FG, Scale = "Actual")
+phy2 <- planktonr::pr_plot_tsfg(FG, Scale = "Actual", Trend = "Month") +
+  ggplot2::theme(axis.title.y = element_blank())
+    
+phy1 + phy2 + 
+  patchwork::plot_layout(widths = c(3,1), guides = "collect") & 
+  theme(legend.position = "bottom")
+```
+## Essential Ocean Variables
+
+```{r}
+EOV <- planktonr::pr_get_EOVs("NRS")
+EOV$Parameters |> unique()
+
+EOV_KAI <- EOV %>%
+  filter(StationCode == "KAI") %>%
+  pr_remove_outliers(2) %>% 
+  pr_get_Coeffs()
+
+EOV_KAI|> filter(Parameters == "Oxygen_umolL")
+```
+
+```{r}
+pr_plot_EOVs(EOV_KAI, EOV = "Biomass_mgm3") /
+  pr_plot_EOVs(EOV_KAI, EOV = "PhytoBiomassCarbon_pgL", col = "darkgreen") /
+  pr_plot_EOVs(EOV_KAI, EOV = "CTDTemperature_degC", col = "darkblue") /
+  pr_plot_EOVs(EOV_KAI, EOV = "ShannonCopepodDiversity", col = "bisque") &
+    theme_bw() &
+  plot_annotation(title = "Kangaroo Island")
+
+pr_plot_EOVs(EOV_KAI, EOV = "ShannonPhytoDiversity", col = "burlywood") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Salinity", col = "turquoise") /
+  pr_plot_EOVs(EOV_KAI, EOV = "PigmentChla_mgm3", col = "slateblue4") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Ammonium_umolL", col = "tomato4") &
+    theme_bw() 
+
+pr_plot_EOVs(EOV_KAI, EOV = "Nitrate_umolL", col = "violetred3") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Nitrite_umolL", col = "moccasin") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Silicate_umolL") / 
+  pr_plot_EOVs(EOV_KAI, EOV = "Phosphate_umolL", col = "olivedrab") &
+#  pr_plot_EOVs(EOV_KAI, EOV = "Oxygen_umolL", col = "darkred") & 
+  theme_bw()
+```
+
+```{r eval=FALSE}
+EOV_KAI |>
+  group_split(Parameters) |>
+  map(~ pr_plot_EOVs(.x, EOV = .x$Parameters))
+```
+
+## Zooplankton
+
+```{r}
+NRSz <- planktonr::pr_get_Indices("NRS", "Z") %>% 
+  filter(Parameters == "ZoopAbundance_m3") %>% 
+  filter(StationCode %in% c("KAI")) |>
+  drop_na()
+
+p1 <- planktonr::pr_plot_Trends(NRSz, Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10")
+p2 <- planktonr::pr_plot_Trends(NRSz, Trend = "Month", Survey = "NRS", method = "loess")
+
+p1 + p2 + 
+  ggplot2::theme(axis.title.y = ggplot2::element_blank()) + # Remove y-title from 2nd column
+  plot_layout(widths = c(3, 1), guides = "collect")
+```
+
+Climatologies
+
+```{r}
+(p1 <- planktonr::pr_plot_TimeSeries(NRSz, Survey = "NRS", trans = "log10"))
+(p2 <- planktonr::pr_plot_Climatology(NRSz, Survey = "NRS", Trend = "Month", trans = "log10"))
+(p3 <- planktonr::pr_plot_Climatology(NRSz, Survey = "NRS", Trend = "Year", trans = "log10"))
+
+p1 / p2/ p3
+```
+
+Functional Groups
+
+```{r}
+FGz <- pr_get_FuncGroups(Survey = "NRS", Type = "Z") %>% 
+  filter(StationCode == "KAI")
+
+z1 <- planktonr::pr_plot_tsfg(FGz, Scale = "Actual")
+z2 <- planktonr::pr_plot_tsfg(FGz, Scale = "Actual", Trend = "Month") +
+  ggplot2::theme(axis.title.y = element_blank())
+
+(phy1 + phy2) / 
+(z1 + z2) + 
+  patchwork::plot_layout(widths = c(3,1), guides = "collect") & 
+  theme(legend.position = "bottom")
+```
+
