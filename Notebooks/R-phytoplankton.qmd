@@ -6,6 +6,8 @@ editor: source
 execute:
   echo: false
   warning: false
+toc: true
+toc-location: left
 ---
 
 ## Investigating phytoplankton in South Australia
@@ -37,53 +39,33 @@ unique(pKAI$StationName)
 colnames(pKAI)
 ```
 
-```{r}
-
-first <-  c("Jon", "Bill", "Bill" , "Maria", "Ben", "Tina")
-age <- c(23, 41, 41 , 32, 58, 26)
-
-df <- data.frame(first , age)
-df
-
-df %>%
-  group_split(first) %>%
-  walk(~ assign(str_c("df.split_", .[1, 1]), value = ., envir = .GlobalEnv))
-
-df %>%
-  group_split(first) %>% 
-  set_names(map_chr(., ~ paste0("df_", .$first[[1]]))) %>% 
-  rlang::env_bind(.GlobalEnv, !!! .)
-
-```
-
-```{r}
+```{r eval=FALSE}
+# NOT WORKING -- trying to map through plotting parameters -- 
 test <- pKAI |>
-  group_split(Parameters) |>
-  purrr::set_names(purrr::map_chr(., .$Parameters[[1]])) |>
-  rlang::env_bind(.GlobalEnv, !!! .)
+   group_split(Parameters) |>
+   purrr::set_names(purrr::map_chr(., .$Parameters[[1]])) |>
+   rlang::env_bind(.GlobalEnv, !!! .)
 
-  map(
-  ~ ggplot(.x, aes(Year_Local, Values)) +
-    geom_point() +
-    geom_smooth() +
-    scale_x_continuous(n.breaks = 15) +
-    labs(title = paste(.x$Parameters), ylab = "Year") +
-    theme_classic()) |>
+ map(
+   ~ ggplot(.x, aes(Year_Local, Values)) +
+     geom_point() +
+     geom_smooth() +
+     scale_x_continuous(n.breaks = 15) +
+     labs(title = paste(.x$Parameters), ylab = "Year") +
+     theme_classic()) |>
 
- # 
-  )
+   )
 
-# set_names(map_chr(., ~ paste0("df_", .$first[[1]]))) %>% 
-#   rlang::env_bind(.GlobalEnv, !!! .)
+ set_names(map_chr(., ~ paste0("df_", .$first[[1]]))) %>%
+   rlang::env_bind(.GlobalEnv, !!! .)
 ```
 
 Plot all parameters through time.
 
 ```{r}
-kai |>
+pKAI |>
   group_split(Parameters) |>
-  map(
-  ~ ggplot(.x, aes(Year_Local, Values)) +
+  map(  ~ ggplot(.x, aes(Year_Local, Values)) +
     geom_point() +
     geom_smooth() +
     scale_x_continuous(n.breaks = 15) +
@@ -95,9 +77,9 @@ kai |>
 Trend analysis
 
 ```{r}
-pr_plot_Trends(kai |> filter(Parameters == "PhytoBiomassCarbon_pgL"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") /
-  pr_plot_Trends(kai |> filter(Parameters == "PhytoAbundance_CellsL"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") /
-    pr_plot_Trends(kai |> filter(Parameters == "NoPhytoSpecies_Sample"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") 
+pr_plot_Trends(pKAI |> filter(Parameters == "PhytoBiomassCarbon_pgL"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") /
+  pr_plot_Trends(pKAI |> filter(Parameters == "PhytoAbundance_CellsL"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") /
+    pr_plot_Trends(pKAI |> filter(Parameters == "NoPhytoSpecies_Sample"), Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10") 
 ```
 
 ```{r}
@@ -117,7 +99,7 @@ p1 + p2 +
 ```
 
 ```{r}
-(p1 <- planktonr::pr_plot_TimeSeries(NRSp, Survey = "NRS", trans = "log10"))
+(p1 <- pr_plot_TimeSeries(NRSp, Survey = "NRS", trans = "log10"))
 ```
 ### Functional Group Phytoplankton
 
@@ -160,20 +142,21 @@ EOV_KAI|> filter(Parameters == "Oxygen_umolL")
 ```{r}
 pr_plot_EOVs(EOV_KAI, EOV = "Biomass_mgm3") /
   pr_plot_EOVs(EOV_KAI, EOV = "PhytoBiomassCarbon_pgL", col = "darkgreen") /
-  pr_plot_EOVs(EOV_KAI, EOV = "CTDTemperature_degC", col = "darkblue") /
-  pr_plot_EOVs(EOV_KAI, EOV = "ShannonCopepodDiversity", col = "bisque") &
+  pr_plot_EOVs(EOV_KAI, EOV = "CTDTemperature_degC", col = "burlywood") &
     theme_bw() &
   plot_annotation(title = "Kangaroo Island")
 
-pr_plot_EOVs(EOV_KAI, EOV = "ShannonPhytoDiversity", col = "burlywood") /
-  pr_plot_EOVs(EOV_KAI, EOV = "Salinity", col = "turquoise") /
-  pr_plot_EOVs(EOV_KAI, EOV = "PigmentChla_mgm3", col = "slateblue4") /
-  pr_plot_EOVs(EOV_KAI, EOV = "Ammonium_umolL", col = "tomato4") &
+pr_plot_EOVs(EOV_KAI, EOV = "ShannonCopepodDiversity", col = "bisque") / pr_plot_EOVs(EOV_KAI, EOV = "ShannonPhytoDiversity", col = "darkblue") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Salinity", col = "turquoise") &
     theme_bw() 
 
-pr_plot_EOVs(EOV_KAI, EOV = "Nitrate_umolL", col = "violetred3") /
-  pr_plot_EOVs(EOV_KAI, EOV = "Nitrite_umolL", col = "moccasin") /
-  pr_plot_EOVs(EOV_KAI, EOV = "Silicate_umolL") / 
+pr_plot_EOVs(EOV_KAI, EOV = "PigmentChla_mgm3", col = "slateblue4") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Nitrate_umolL", col = "violetred3") /
+  pr_plot_EOVs(EOV_KAI, EOV = "Nitrite_umolL", col = "moccasin")  &
+    theme_bw() 
+
+pr_plot_EOVs(EOV_KAI, EOV = "Ammonium_umolL", col = "tomato4") /
+pr_plot_EOVs(EOV_KAI, EOV = "Silicate_umolL", col = "steelblue") / 
   pr_plot_EOVs(EOV_KAI, EOV = "Phosphate_umolL", col = "olivedrab") &
 #  pr_plot_EOVs(EOV_KAI, EOV = "Oxygen_umolL", col = "darkred") & 
   theme_bw()
@@ -202,14 +185,12 @@ p1 + p2 +
   plot_layout(widths = c(3, 1), guides = "collect")
 ```
 
-Climatologies
+### Climatologies
 
 ```{r}
 (p1 <- planktonr::pr_plot_TimeSeries(NRSz, Survey = "NRS", trans = "log10"))
 (p2 <- planktonr::pr_plot_Climatology(NRSz, Survey = "NRS", Trend = "Month", trans = "log10"))
 (p3 <- planktonr::pr_plot_Climatology(NRSz, Survey = "NRS", Trend = "Year", trans = "log10"))
-
-p1 / p2/ p3
 ```
 
 ### Functional Groups
@@ -235,8 +216,9 @@ FGz <- pr_get_FuncGroups(Survey = "NRS", Type = "Z") %>%
 
 ## Phyto-Zoo Funcrtional Groups plot
 
-Plot with both phytoplankton and zooplankton abundance. Removed legends because of space. Colors are functional groups.
+Plot with both phytoplankton and zooplankton abundance. Phytoplankgon "other" functional group has 0 abundance 2011-2013 and zooplankton abundance crashes around 2011 and 2013.
 
+Removed legends because of space. Colors are functional groups.
 
 ```{r}
 phy1b <- phy1 +
@@ -255,6 +237,6 @@ z1b <- z1 + theme(axis.text.y = element_text(size = 6))
 (z1b + z2 + 
   plot_layout(widths = c(3,1), guides = "collect"))
 
-ggsave("../Figures/phyto-zooplankgon.png", dpi = 300, width = 7, height = 4)
+ggsave("../Figures/phyto-zooplankgon.png", dpi = 300, width = 9, height = 6)
 ```
 
