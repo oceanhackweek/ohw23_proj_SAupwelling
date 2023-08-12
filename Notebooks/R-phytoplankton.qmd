@@ -38,9 +38,43 @@ colnames(pKAI)
 ```
 
 ```{r}
-kai <- 
 
-unique(kai$Parameters)
+first <-  c("Jon", "Bill", "Bill" , "Maria", "Ben", "Tina")
+age <- c(23, 41, 41 , 32, 58, 26)
+
+df <- data.frame(first , age)
+df
+
+df %>%
+  group_split(first) %>%
+  walk(~ assign(str_c("df.split_", .[1, 1]), value = ., envir = .GlobalEnv))
+
+df %>%
+  group_split(first) %>% 
+  set_names(map_chr(., ~ paste0("df_", .$first[[1]]))) %>% 
+  rlang::env_bind(.GlobalEnv, !!! .)
+
+```
+
+```{r}
+test <- pKAI |>
+  group_split(Parameters) |>
+  purrr::set_names(purrr::map_chr(., .$Parameters[[1]])) |>
+  rlang::env_bind(.GlobalEnv, !!! .)
+
+  map(
+  ~ ggplot(.x, aes(Year_Local, Values)) +
+    geom_point() +
+    geom_smooth() +
+    scale_x_continuous(n.breaks = 15) +
+    labs(title = paste(.x$Parameters), ylab = "Year") +
+    theme_classic()) |>
+
+ # 
+  )
+
+# set_names(map_chr(., ~ paste0("df_", .$first[[1]]))) %>% 
+#   rlang::env_bind(.GlobalEnv, !!! .)
 ```
 
 Plot all parameters through time.
@@ -85,15 +119,25 @@ p1 + p2 +
 ```{r}
 (p1 <- planktonr::pr_plot_TimeSeries(NRSp, Survey = "NRS", trans = "log10"))
 ```
-## Functional Group
+### Functional Group Phytoplankton
 
 ```{r}
 FG <- pr_get_FuncGroups(Survey = "NRS", Type = "P") %>% 
   dplyr::filter(StationCode == "KAI")
 
-phy1 <- planktonr::pr_plot_tsfg(FG, Scale = "Actual")
-phy2 <- planktonr::pr_plot_tsfg(FG, Scale = "Actual", Trend = "Month") +
-  ggplot2::theme(axis.title.y = element_blank())
+phy1 <- pr_plot_tsfg(FG, Scale = "Actual") +
+    theme(#title = element_blank(),
+        text = element_text(size = 12),
+        axis.text.y = element_text(size = 8)) +
+  ggtitle("") +
+  guides(fill = FALSE)
+
+phy2 <- pr_plot_tsfg(FG, Scale = "Actual", Trend = "Month") +
+    theme(axis.title.y = element_blank(),
+                 text = element_text(size = 12),
+          strip.text.x = element_blank()) +
+  ggtitle("") +
+  guides(fill = FALSE)
     
 phy1 + phy2 + 
   patchwork::plot_layout(widths = c(3,1), guides = "collect") & 
@@ -148,6 +192,7 @@ NRSz <- planktonr::pr_get_Indices("NRS", "Z") %>%
   filter(Parameters == "ZoopAbundance_m3") %>% 
   filter(StationCode %in% c("KAI")) |>
   drop_na()
+unique(NRSz$Parameters)
 
 p1 <- planktonr::pr_plot_Trends(NRSz, Trend = "Raw", Survey = "NRS", method = "lm", trans = "log10")
 p2 <- planktonr::pr_plot_Trends(NRSz, Trend = "Month", Survey = "NRS", method = "loess")
@@ -167,19 +212,49 @@ Climatologies
 p1 / p2/ p3
 ```
 
-Functional Groups
+### Functional Groups
 
 ```{r}
 FGz <- pr_get_FuncGroups(Survey = "NRS", Type = "Z") %>% 
   filter(StationCode == "KAI")
 
-z1 <- planktonr::pr_plot_tsfg(FGz, Scale = "Actual")
-z2 <- planktonr::pr_plot_tsfg(FGz, Scale = "Actual", Trend = "Month") +
-  ggplot2::theme(axis.title.y = element_blank())
+(z1 <- planktonr::pr_plot_tsfg(FGz, Scale = "Actual") +
+  theme(text = element_text(size = 12),
+        strip.text.x = element_blank()) +
+  guides(fill = FALSE) +
+  ylab("Zooplankton Abundance\ncells per cubic m"))
 
-(phy1 + phy2) / 
-(z1 + z2) + 
-  patchwork::plot_layout(widths = c(3,1), guides = "collect") & 
-  theme(legend.position = "bottom")
+(z2 <- pr_plot_tsfg(FGz, Scale = "Actual", Trend = "Month") +
+  theme(strip.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(size = 12)) +
+  ggtitle("")+
+  guides(fill = FALSE))
+
+```
+
+## Phyto-Zoo Funcrtional Groups plot
+
+Plot with both phytoplankton and zooplankton abundance. Removed legends because of space. Colors are functional groups.
+
+
+```{r}
+phy1b <- phy1 +
+  theme(axis.text.x  = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_text(size = 8)) +
+  ylab("Phytoplankton Abundance\ncells per L")
+
+phy2b <- phy2 +
+  theme(strip.text.x = element_blank())
+
+z1b <- z1 + theme(axis.text.y = element_text(size = 6))
+
+(phy1 + phy2 + 
+    plot_layout(widths = c(3,1), guides = "collect")) / 
+(z1b + z2 + 
+  plot_layout(widths = c(3,1), guides = "collect"))
+
+ggsave("../Figures/phyto-zooplankgon.png", dpi = 300, width = 7, height = 4)
 ```
 
