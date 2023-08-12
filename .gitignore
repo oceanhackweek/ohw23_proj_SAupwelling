@@ -165,3 +165,8 @@ cython_debug/
 #.idea/
 
 data/
+.Rproj.user
+
+# R
+.Rproj
+.Rproj.user
