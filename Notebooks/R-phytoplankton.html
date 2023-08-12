@@ -38,10 +38,31 @@ ul.task-list li input[type="checkbox"] {
 
 </head>
 
-<body class="fullcontent">
+<body>
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#investigating-phytoplankton-in-south-australia" id="toc-investigating-phytoplankton-in-south-australia" class="nav-link active" data-scroll-target="#investigating-phytoplankton-in-south-australia">Investigating phytoplankton in South Australia</a></li>
+  <li><a href="#phytolankton" id="toc-phytolankton" class="nav-link" data-scroll-target="#phytolankton">Phytolankton</a>
+  <ul class="collapse">
+  <li><a href="#functional-group-phytoplankton" id="toc-functional-group-phytoplankton" class="nav-link" data-scroll-target="#functional-group-phytoplankton">Functional Group Phytoplankton</a></li>
+  </ul></li>
+  <li><a href="#essential-ocean-variables" id="toc-essential-ocean-variables" class="nav-link" data-scroll-target="#essential-ocean-variables">Essential Ocean Variables</a></li>
+  <li><a href="#zooplankton" id="toc-zooplankton" class="nav-link" data-scroll-target="#zooplankton">Zooplankton</a>
+  <ul class="collapse">
+  <li><a href="#climatologies" id="toc-climatologies" class="nav-link" data-scroll-target="#climatologies">Climatologies</a></li>
+  <li><a href="#functional-groups" id="toc-functional-groups" class="nav-link" data-scroll-target="#functional-groups">Functional Groups</a></li>
+  </ul></li>
+  <li><a href="#phyto-zoo-funcrtional-groups-plot" id="toc-phyto-zoo-funcrtional-groups-plot" class="nav-link" data-scroll-target="#phyto-zoo-funcrtional-groups-plot">Phyto-Zoo Funcrtional Groups plot</a></li>
+  </ul>
+</nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+</div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -73,6 +94,10 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell">
 
 </div>
+</section>
+<section id="phytolankton" class="level2">
+<h2 class="anchored" data-anchor-id="phytolankton">Phytolankton</h2>
+<p>Get National Referecne Station data using <code>{planktonr}</code> package. Look at parameters, column names.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "PhytoBiomassCarbon_pgL"    "PhytoAbundance_CellsL"    
@@ -84,18 +109,14 @@ ul.task-list li input[type="checkbox"] {
 [13] "DinoflagellateEvenness"   </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] Darwin                  Esperance               Kangaroo Island        
-[4] Maria Island            Ningaloo                North Stradbroke Island
-[7] Port Hacking            Rottnest Island         Yongala                
+<pre><code>[1] Kangaroo Island
 9 Levels: Darwin Yongala Ningaloo North Stradbroke Island ... Maria Island</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code> [1] "TripCode"         "Year_Local"       "Month_Local"      "SampleTime_Local"
- [5] "tz"               "Latitude"         "Longitude"        "StationName"     
- [9] "StationCode"      "Parameters"       "Values"          </code></pre>
+<pre><code>[1] "Year_Local"       "Month_Local"      "SampleTime_Local" "StationName"     
+[5] "Parameters"       "Values"          </code></pre>
 </div>
 </div>
-<p>You can add options to executable code like this</p>
 <div class="cell">
 
 </div>
@@ -199,18 +220,26 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "PhytoAbundance_CellsL"</code></pre>
+</div>
 <div class="cell-output-display">
 <p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-</section>
-<section id="functional-group" class="level2">
-<h2 class="anchored" data-anchor-id="functional-group">Functional Group</h2>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<section id="functional-group-phytoplankton" class="level3">
+<h3 class="anchored" data-anchor-id="functional-group-phytoplankton">Functional Group Phytoplankton</h3>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
 </section>
 <section id="essential-ocean-variables" class="level2">
 <h2 class="anchored" data-anchor-id="essential-ocean-variables">Essential Ocean Variables</h2>
@@ -234,13 +263,16 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid" width="672"></p>
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-9-3.png" class="img-fluid" width="672"></p>
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
@@ -250,29 +282,46 @@ ul.task-list li input[type="checkbox"] {
 <section id="zooplankton" class="level2">
 <h2 class="anchored" data-anchor-id="zooplankton">Zooplankton</h2>
 <div class="cell">
-<div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "ZoopAbundance_m3"</code></pre>
 </div>
-</div>
-<p>Climatologies</p>
-<div class="cell">
 <div class="cell-output-display">
 <p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-12-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid" width="672"></p>
-</div>
-<div class="cell-output-display">
-<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-12-4.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Functional Groups</p>
+<section id="climatologies" class="level3">
+<h3 class="anchored" data-anchor-id="climatologies">Climatologies</h3>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="functional-groups" class="level3">
+<h3 class="anchored" data-anchor-id="functional-groups">Functional Groups</h3>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-14-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="phyto-zoo-funcrtional-groups-plot" class="level2">
+<h2 class="anchored" data-anchor-id="phyto-zoo-funcrtional-groups-plot">Phyto-Zoo Funcrtional Groups plot</h2>
+<p>Plot with both phytoplankton and zooplankton abundance. Phytoplankgon “other” functional group has 0 abundance 2011-2013 and zooplankton abundance crashes around 2011 and 2013.</p>
+<p>Removed legends because of space. Colors are functional groups.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="R-phytoplankton_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
